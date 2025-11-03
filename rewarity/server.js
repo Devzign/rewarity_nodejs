@@ -1,0 +1,44 @@
+require('dotenv').config(); // load .env FIRST
+
+const express = require('express');
+const cors = require('cors');
+const { connectDB } = require('./config/db');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Basic request logger (helps debug 403 source)
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+// DB
+connectDB().catch((err) => {
+  console.error('❌ MongoDB Connection Error:', err);
+  process.exit(1);
+});
+
+// Routes
+app.get('/', (req, res) => {
+  res.send('Rewarity backend running 🚀');
+});
+
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+
+const PORT = process.env.PORT || 5000;
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found', path: req.originalUrl });
+});
+
+// Error handler
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ message: 'Internal Server Error' });
+});
+
+app.listen(PORT, () => console.log(`🚀 Rewarity server running on port ${PORT}`));
