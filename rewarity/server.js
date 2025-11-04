@@ -5,7 +5,17 @@ const cors = require('cors');
 const { connectDB } = require('./config/db');
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+if (allowedOrigins.length > 0) {
+  app.use(cors({ origin: allowedOrigins, credentials: true }));
+} else {
+  app.use(cors());
+}
 app.use(express.json());
 
 // Basic request logger (helps debug 403 source)
