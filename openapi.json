@@ -1,0 +1,41 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Rewarity API",
+    "version": "1.0.0",
+    "description": "OpenAPI spec for Rewarity backend (OTP-only auth)."
+  },
+  "servers": [ { "url": "/" } ],
+  "paths": {
+    "/": { "get": { "summary": "Health check", "responses": { "200": { "description": "OK" } } } },
+    "/api/auth/register": { "post": { "summary": "Register user (OTP)", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } } } }, "responses": { "201": { "description": "User created" }, "400": { "$ref": "#/components/responses/BadRequest" }, "409": { "$ref": "#/components/responses/Conflict" } } } },
+    "/api/auth/login": { "post": { "summary": "OTP login (send/verify)", "requestBody": { "required": true, "content": { "application/json": { "schema": { "oneOf": [ { "$ref": "#/components/schemas/LoginSendOtpRequest" }, { "$ref": "#/components/schemas/LoginVerifyOtpRequest" } ] } } } }, "responses": { "200": { "description": "OTP sent or login success" }, "400": { "$ref": "#/components/responses/BadRequest" }, "403": { "$ref": "#/components/responses/Forbidden" }, "404": { "$ref": "#/components/responses/NotFound" } } } },
+    "/api/auth/request-otp": { "post": { "summary": "Request OTP", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RequestOtp" } } } }, "responses": { "200": { "$ref": "#/components/responses/OtpIssued" }, "404": { "$ref": "#/components/responses/NotFound" } } } },
+    "/api/auth/verify-otp": { "post": { "summary": "Verify OTP", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VerifyOtp" } } } }, "responses": { "200": { "$ref": "#/components/responses/LoginSuccess" }, "400": { "$ref": "#/components/responses/BadRequest" }, "404": { "$ref": "#/components/responses/NotFound" } } } },
+    "/api/users/create-type": { "post": { "summary": "Create a user type", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserTypeCreate" } } } }, "responses": { "201": { "description": "Created" }, "500": { "$ref": "#/components/responses/ServerError" } } } },
+    "/api/users/create-user": { "post": { "summary": "Create user", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateUserRequest" } } } }, "responses": { "201": { "description": "User created" }, "400": { "$ref": "#/components/responses/BadRequest" }, "500": { "$ref": "#/components/responses/ServerError" } } } },
+    "/api/openapi.json": { "get": { "summary": "Serve OpenAPI JSON", "responses": { "200": { "description": "Spec JSON" } } } }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": { "type": "object", "required": ["userName", "primaryMobile", "typeName"], "properties": { "userName": { "type": "string" }, "primaryMobile": { "type": "string" }, "typeName": { "type": "string" }, "email": { "type": "string" }, "address1": { "type": "string" }, "address2": { "type": "string" }, "cityName": { "type": "string" } } },
+      "LoginSendOtpRequest": { "type": "object", "required": ["mobile"], "properties": { "mobile": { "type": "string" } } },
+      "LoginVerifyOtpRequest": { "type": "object", "required": ["mobile", "code"], "properties": { "mobile": { "type": "string" }, "code": { "type": "string" } } },
+      "RequestOtp": { "type": "object", "required": ["mobile", "purpose"], "properties": { "mobile": { "type": "string" }, "purpose": { "type": "string", "enum": ["login", "register"] } } },
+      "VerifyOtp": { "type": "object", "required": ["mobile", "code"], "properties": { "mobile": { "type": "string" }, "code": { "type": "string" } } },
+      "UserTypeCreate": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "description": { "type": "string" } } },
+      "CreateUserRequest": { "type": "object", "required": ["userName", "primaryMobile", "typeName"], "properties": { "userName": { "type": "string" }, "primaryMobile": { "type": "string" }, "typeName": { "type": "string" }, "email": { "type": "string" }, "address1": { "type": "string" }, "address2": { "type": "string" }, "cityName": { "type": "string" } } }
+    },
+    "responses": {
+      "BadRequest": { "description": "Bad Request" },
+      "Conflict": { "description": "Conflict" },
+      "Forbidden": { "description": "Forbidden" },
+      "NotFound": { "description": "Not Found" },
+      "ServerError": { "description": "Server Error" },
+      "OtpIssued": { "description": "OTP issued" },
+      "LoginSuccess": { "description": "Login success" }
+    },
+    "securitySchemes": { "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } }
+  }
+}
+
