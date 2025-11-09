@@ -32,7 +32,9 @@ const createUserType = async (req, res) => {
 // Create user
 const createUser = async (req, res) => {
   try {
-    const { userName, email, password, typeName, address1, address2, cityName } = req.body;
+    const { userName, email, primaryMobile, typeName, address1, address2, cityName } = req.body;
+
+    if (!primaryMobile) return res.status(400).json({ message: 'primaryMobile is required' });
 
     const userType = await UserType.findOne({ name: typeName });
     if (!userType) return res.status(400).json({ message: "Invalid user type" });
@@ -49,7 +51,7 @@ const createUser = async (req, res) => {
     const user = await User.create({
       userName,
       email,
-      password,
+      primaryMobile,
       userType: userType._id,
       address: address._id,
       uniqueCode,
@@ -72,7 +74,7 @@ const seedAdmin = async () => {
   await User.create({
     userName: "Admin",
     email: "admin@rewarity.com",
-    password: "Admin@123",
+    primaryMobile: "9999999999",
     userType: adminType._id,
     uniqueCode: "ADMIN-001",
   });

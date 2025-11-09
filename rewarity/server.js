@@ -38,6 +38,17 @@ app.get('/', (req, res) => {
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 
+// Serve OpenAPI spec
+try {
+  // Using require to avoid adding YAML/JSON parsers
+  // Keep this in sync with implemented routes
+  // Access at: /api/openapi.json
+  const openapi = require('./openapi.json');
+  app.get('/api/openapi.json', (_req, res) => res.json(openapi));
+} catch (e) {
+  console.warn('OpenAPI spec not loaded:', e.message);
+}
+
 const PORT = process.env.PORT || 5000;
 // 404 handler
 app.use((req, res) => {
