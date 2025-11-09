@@ -42,6 +42,10 @@ try {
   console.warn('OpenAPI spec not loaded:', e.message);
 }
 
+// Swagger UI (static HTML using CDN)
+app.use('/swagger', require('express').static('public/swagger'));
+app.get(['/api/docs', '/docs'], (_req, res) => res.redirect('/swagger'));
+
 const PORT = process.env.PORT || 5000;
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found', path: req.originalUrl });
@@ -54,4 +58,3 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Rewarity server running on port ${PORT}`));
-
