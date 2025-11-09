@@ -34,6 +34,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
+// Dev utilities (OTP peek) — guarded in controller by DEV_ADMIN_KEY and NODE_ENV
+app.use('/api/dev', require('./routes/devRoutes'));
 
 try {
   const openapi = require('./openapi.json');
