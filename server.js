@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./config/db');
+const { seedAdmin } = require('./controllers/userController');
 
 const app = express();
 
@@ -23,10 +24,18 @@ app.use((req, _res, next) => {
   next();
 });
 
-connectDB().catch((err) => {
-  console.error('❌ MongoDB Connection Error:', err);
-  process.exit(1);
-});
+connectDB()
+  .then(async () => {
+    try {
+      await seedAdmin();
+    } catch (e) {
+      console.error('Admin seed failed:', e.message);
+    }
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB Connection Error:', err);
+    process.exit(1);
+  });
 
 app.get('/', (req, res) => {
   res.send('Rewarity backend running 🚀');
@@ -34,7 +43,9 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
-// Dev utilities (OTP peek) — guarded in controller by DEV_ADMIN_KEY and NODE_ENV
+app.use('/api/user-types', require('./routes/userTypeRoutes'));
+app.use('/api/colors', require('./routes/colorRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/dev', require('./routes/devRoutes'));
 
 try {

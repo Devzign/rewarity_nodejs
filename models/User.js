@@ -6,9 +6,9 @@ const userSchema = new mongoose.Schema({
   primaryMobile: { type: String, required: true, index: true, unique: true, trim: true },
   userType: { type: mongoose.Schema.Types.ObjectId, ref: 'UserType' },
   address: { type: mongoose.Schema.Types.ObjectId, ref: 'Address' },
+  manager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   uniqueCode: { type: String, unique: true },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
-
