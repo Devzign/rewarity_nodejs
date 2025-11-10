@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const { connectDB } = require('./config/db');
 const { seedAdmin } = require('./controllers/userController');
 
@@ -60,6 +62,17 @@ app.use('/swagger', require('express').static('public/swagger'));
 app.get(['/api/docs', '/docs'], (_req, res) => res.redirect('/swagger'));
 
 const PORT = process.env.PORT || 5000;
+
+// Serve built admin UI if available (admin-ui/build)
+const adminBuildPath = path.join(__dirname, 'admin-ui', 'build');
+if (fs.existsSync(adminBuildPath)) {
+  app.use(express.static(adminBuildPath));
+  // Let React Router handle admin/auth routes
+  app.get(['/admin', '/admin/*', '/auth', '/auth/*', '/rtl', '/rtl/*'], (_req, res) => {
+    res.sendFile(path.join(adminBuildPath, 'index.html'));
+  });
+}
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Not Found', path: req.originalUrl });
 });
