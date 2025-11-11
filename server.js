@@ -6,6 +6,7 @@ const cors = require('cors');
 // const fs = require('fs');
 const { connectDB } = require('./config/db');
 const { seedAdmin } = require('./controllers/userController');
+const { auth } = require('./middleware/auth');
 
 const app = express();
 
@@ -24,6 +25,24 @@ app.use(express.json());
 app.use((req, _res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
+});
+
+// Global auth gate: require token for all APIs except public auth endpoints
+const PUBLIC_ROUTES = [
+  { method: 'POST', pattern: /^\/api\/auth\/(login|register|request-otp|verify-otp)$/i },
+  { method: 'GET', pattern: /^\/$/ },
+  { method: 'GET', pattern: /^\/api\/openapi\.json$/i },
+  { method: 'GET', pattern: /^\/swagger(?:\/.*)?$/i },
+  { method: 'GET', pattern: /^\/(?:api\/)?docs$/i },
+];
+
+app.use((req, res, next) => {
+  const method = req.method.toUpperCase();
+  if (method === 'OPTIONS') return next(); // Allow CORS preflight
+  const path = req.path;
+  const isPublic = PUBLIC_ROUTES.some((r) => (!r.method || r.method === method) && r.pattern.test(path));
+  if (isPublic) return next();
+  return auth(req, res, next);
 });
 
 connectDB()
