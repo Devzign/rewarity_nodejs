@@ -72,6 +72,7 @@ app.use('/api/dev', require('./routes/devRoutes'));
 app.use('/api/master', require('./routes/masterRoutes'));
 app.use('/api/product-config', require('./routes/productConfigRoutes'));
 app.use('/api/rewards', require('./routes/rewardRoutes'));
+app.use('/api/checkins', require('./routes/checkinRoutes'));
 
 try {
   const openapi = require('./openapi.json');

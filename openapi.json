@@ -261,6 +261,60 @@
       "delete": { "summary": "Delete reward (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
     },
 
+    "/api/checkins": {
+      "get": {
+        "summary": "List my check-ins (salesperson)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1 }, "example": 1 },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 }, "example": 20 }
+        ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckInList" } } } }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      },
+      "post": {
+        "summary": "Create a check-in (salesperson)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckInCreate" } } } },
+        "responses": { "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckIn" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      }
+    },
+
+    "/api/checkins/admin": {
+      "get": {
+        "summary": "Admin list check-ins",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [
+          { "name": "salesperson", "in": "query", "schema": { "type": "string" } },
+          { "name": "dealer", "in": "query", "schema": { "type": "string" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1 }, "example": 1 },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200 }, "example": 50 }
+        ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckInList" } } } }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      }
+    },
+
+    "/api/checkins/{id}": {
+      "get": {
+        "summary": "Get a check-in (owner/admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckIn" } } } }, "403": { "$ref": "#/components/responses/Forbidden" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/checkins/{id}/proof": {
+      "get": {
+        "summary": "Download proof image (owner/admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Binary image" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
     "/api/user-types": {
       "get": {
         "summary": "List user types (admin)",
@@ -372,6 +426,41 @@
       "ProductDealerPriceCreate": { "type": "object", "required": ["product", "dealer", "price"], "properties": { "product": { "type": "string" }, "dealer": { "type": "string" }, "price": { "type": "number" }, "currency": { "type": "string", "example": "INR" }, "effectiveFrom": { "type": "string", "format": "date-time" } } },
       "RewardCreate": { "type": "object", "required": ["name", "pointsRequired"], "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "pointsRequired": { "type": "integer" }, "isActive": { "type": "boolean" } } },
       "RewardUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "pointsRequired": { "type": "integer" }, "isActive": { "type": "boolean" } } }
+      ,
+      "CheckInCreate": {
+        "type": "object",
+        "required": ["dealerId"],
+        "properties": {
+          "dealerId": { "type": "string" },
+          "remarks": { "type": "string" },
+          "lat": { "type": "number" },
+          "lng": { "type": "number" },
+          "proofImageBase64": { "type": "string", "description": "Base64 image; required if lat/lng missing" },
+          "proofMimeType": { "type": "string", "example": "image/jpeg" },
+          "proofCapturedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CheckIn": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "salesperson": { "$ref": "#/components/schemas/UserRef" },
+          "dealer": { "$ref": "#/components/schemas/UserRef" },
+          "remarks": { "type": "string" },
+          "lat": { "type": "number" },
+          "lng": { "type": "number" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CheckInList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CheckIn" } },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" }
+        }
+      }
     },
     "responses": {
       "BadRequest": { "description": "Bad Request" },
