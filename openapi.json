@@ -118,6 +118,149 @@
       }
     },
 
+    "/api/colors": {
+      "get": {
+        "summary": "List all colors (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Color" } } } } } }
+      },
+      "post": {
+        "summary": "Create color (any user)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ColorCreate" } } } },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+
+    "/api/colors/active": {
+      "get": {
+        "summary": "List active colors (any user)",
+        "security": [ { "BearerAuth": [] } ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Color" } } } } } }
+      }
+    },
+
+    "/api/colors/{id}": {
+      "patch": {
+        "summary": "Update color (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ColorUpdate" } } } },
+        "responses": { "200": { "description": "Updated" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "delete": {
+        "summary": "Delete color (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Deleted" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/products": {
+      "get": {
+        "summary": "List products (any user)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [
+          { "name": "active", "in": "query", "required": false, "schema": { "type": "string", "enum": ["true", "false"] } },
+          { "name": "category", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } } } }
+      },
+      "post": {
+        "summary": "Create product (any user)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductCreate" } } } },
+        "responses": { "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Product" } } } }, "400": { "$ref": "#/components/responses/BadRequest" } }
+      }
+    },
+
+    "/api/products/{id}": {
+      "get": {
+        "summary": "Get product (any user)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Product" } } } }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "patch": {
+        "summary": "Update product (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductUpdate" } } } },
+        "responses": { "200": { "description": "Updated" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "delete": {
+        "summary": "Delete product (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Deleted" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/master/countries": {
+      "get": { "summary": "List countries (any user)", "security": [ { "BearerAuth": [] } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create country (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["countryName"], "properties": { "countryName": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/master/countries/{id}": {
+      "patch": { "summary": "Update country (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "countryName": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Updated" } } },
+      "delete": { "summary": "Delete country (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
+    },
+
+    "/api/master/states": {
+      "get": { "summary": "List states (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "country", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create state (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["stateName"], "properties": { "stateName": { "type": "string" }, "country": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/master/states/{id}": {
+      "patch": { "summary": "Update state (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "stateName": { "type": "string" }, "country": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Updated" } } },
+      "delete": { "summary": "Delete state (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
+    },
+
+    "/api/master/cities": {
+      "get": { "summary": "List cities (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "state", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create city (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["cityName"], "properties": { "cityName": { "type": "string" } } } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/master/cities/{id}": {
+      "patch": { "summary": "Update city (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "cityName": { "type": "string" } } } } } }, "responses": { "200": { "description": "Updated" } } },
+      "delete": { "summary": "Delete city (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
+    },
+
+    "/api/master/pincodes": {
+      "get": { "summary": "List pincodes (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "city", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create pincode (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["code"], "properties": { "code": { "type": "string" }, "city": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/master/pincodes/{id}": {
+      "patch": { "summary": "Update pincode (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "code": { "type": "string" }, "city": { "type": "string" }, "isActive": { "type": "boolean" } } } } } }, "responses": { "200": { "description": "Updated" } } },
+      "delete": { "summary": "Delete pincode (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
+    },
+
+    "/api/product-config/points": {
+      "get": { "summary": "List product points config (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "product", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create product points config (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductPointsCreate" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/product-config/purchase-price": {
+      "get": { "summary": "List purchase prices (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "product", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create purchase price (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductPriceCreate" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/product-config/sale-price": {
+      "get": { "summary": "List sale prices (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "product", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create sale price (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductPriceCreate" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/product-config/dealer-price": {
+      "get": { "summary": "List dealer prices (any user)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "product", "in": "query", "schema": { "type": "string" } }, { "name": "dealer", "in": "query", "schema": { "type": "string" } } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create dealer price (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductDealerPriceCreate" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+
+    "/api/rewards/active": {
+      "get": { "summary": "List active rewards (any user)", "security": [ { "BearerAuth": [] } ], "responses": { "200": { "description": "OK" } } }
+    },
+    "/api/rewards": {
+      "get": { "summary": "List all rewards (admin)", "security": [ { "BearerAuth": [] } ], "responses": { "200": { "description": "OK" } } },
+      "post": { "summary": "Create reward (admin)", "security": [ { "BearerAuth": [] } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RewardCreate" } } } }, "responses": { "201": { "description": "Created" } } }
+    },
+    "/api/rewards/{id}": {
+      "patch": { "summary": "Update reward (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RewardUpdate" } } } }, "responses": { "200": { "description": "Updated" } } },
+      "delete": { "summary": "Delete reward (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
+    }
+
     "/api/user-types": {
       "get": {
         "summary": "List user types (admin)",
@@ -202,6 +345,33 @@
       "UserTypeUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" } } },
       "OtpSentResponse": { "type": "object", "properties": { "message": { "type": "string", "example": "OTP sent" }, "mobile": { "type": "string", "example": "xxxxxx9999" }, "debugOtp": { "type": "object", "nullable": true, "properties": { "code": { "type": "string", "example": "555444" }, "expiresAt": { "type": "string", "format": "date-time" } }, "description": "Included only in non-production." } } },
       "LoginSuccessResponse": { "type": "object", "properties": { "message": { "type": "string", "example": "Login successful" }, "token": { "type": "string" }, "user": { "type": "object", "properties": { "id": { "type": "string" }, "userName": { "type": "string", "example": "Admin" }, "email": { "type": "string", "example": "admin@rewarity.com" }, "uniqueCode": { "type": "string", "example": "ADMIN-001" } } } } }
+      ,
+      "Color": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "value": { "type": "string", "example": "#FFFFFF" }, "isActive": { "type": "boolean" } } },
+      "ColorCreate": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "value": { "type": "string" }, "isActive": { "type": "boolean" } } },
+      "ColorUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "value": { "type": "string" }, "isActive": { "type": "boolean" } } },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "category": { "$ref": "#/components/schemas/CategoryRef" },
+          "colors": { "type": "array", "items": { "$ref": "#/components/schemas/Color" } },
+          "price": { "type": "number" },
+          "isActive": { "type": "boolean" },
+          "createdBy": { "$ref": "#/components/schemas/UserRef" }
+        }
+      },
+      "ProductCreate": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "category": { "type": "string" }, "colors": { "type": "array", "items": { "type": "string" } }, "price": { "type": "number" }, "isActive": { "type": "boolean" } } },
+      "ProductUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "category": { "type": "string" }, "colors": { "type": "array", "items": { "type": "string" } }, "price": { "type": "number" }, "isActive": { "type": "boolean" } } },
+      "CategoryRef": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } },
+      "UserRef": { "type": "object", "properties": { "id": { "type": "string" }, "userName": { "type": "string" } } }
+      ,
+      "ProductPointsCreate": { "type": "object", "required": ["product", "pointsPerUnit"], "properties": { "product": { "type": "string" }, "pointsPerUnit": { "type": "integer" }, "isActive": { "type": "boolean" }, "effectiveFrom": { "type": "string", "format": "date-time" } } },
+      "ProductPriceCreate": { "type": "object", "required": ["product", "price"], "properties": { "product": { "type": "string" }, "price": { "type": "number" }, "currency": { "type": "string", "example": "INR" }, "effectiveFrom": { "type": "string", "format": "date-time" } } },
+      "ProductDealerPriceCreate": { "type": "object", "required": ["product", "dealer", "price"], "properties": { "product": { "type": "string" }, "dealer": { "type": "string" }, "price": { "type": "number" }, "currency": { "type": "string", "example": "INR" }, "effectiveFrom": { "type": "string", "format": "date-time" } } },
+      "RewardCreate": { "type": "object", "required": ["name", "pointsRequired"], "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "pointsRequired": { "type": "integer" }, "isActive": { "type": "boolean" } } },
+      "RewardUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "pointsRequired": { "type": "integer" }, "isActive": { "type": "boolean" } } }
     },
     "responses": {
       "BadRequest": { "description": "Bad Request" },

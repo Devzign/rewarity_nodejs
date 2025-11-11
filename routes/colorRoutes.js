@@ -4,7 +4,8 @@ const { auth, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.post('/', auth, requireAdmin, async (req, res) => {
+// Allow any authenticated user to add a color
+router.post('/', auth, async (req, res) => {
   try {
     const { name, value, isActive } = req.body || {};
     if (!name) return res.status(400).json({ message: 'name is required' });
@@ -15,6 +16,7 @@ router.post('/', auth, requireAdmin, async (req, res) => {
   }
 });
 
+// Keep full list admin-only; add an active list for users below
 router.get('/', auth, requireAdmin, async (_req, res) => {
   try {
     const items = await Color.find().sort({ createdAt: -1 });
@@ -50,4 +52,12 @@ router.delete('/:id', auth, requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
-
+// Additional route: list active colors for any user
+router.get('/active', auth, async (_req, res) => {
+  try {
+    const items = await Color.find({ isActive: true }).sort({ name: 1 });
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to list active colors', error: err.message });
+  }
+});

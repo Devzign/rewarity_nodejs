@@ -66,8 +66,12 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/user-types', require('./routes/userTypeRoutes'));
 app.use('/api/colors', require('./routes/colorRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/dev', require('./routes/devRoutes'));
+app.use('/api/master', require('./routes/masterRoutes'));
+app.use('/api/product-config', require('./routes/productConfigRoutes'));
+app.use('/api/rewards', require('./routes/rewardRoutes'));
 
 try {
   const openapi = require('./openapi.json');
