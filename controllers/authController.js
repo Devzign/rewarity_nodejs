@@ -5,6 +5,20 @@ const Address = require('../models/Address');
 const City = require('../models/City');
 const Otp = require('../models/Otp');
 
+const ADMIN_OTP = process.env.ADMIN_OTP || '555444';
+
+async function isAdminUser(user) {
+  try {
+    if (!user) return false;
+    const typeId = user.userType || (user.user && user.user.userType);
+    if (!typeId) return false;
+    const type = await UserType.findById(typeId);
+    return !!(type && /^admin$/i.test(type.name));
+  } catch (_e) {
+    return false;
+  }
+}
+
 // POST /api/auth/login (OTP-only)
 async function login(req, res) {
   try {
@@ -22,11 +36,16 @@ async function login(req, res) {
       return res.json(resp);
     }
 
-    const now = new Date();
-    const otp = await Otp.findOne({ mobile, code, consumed: false, expiresAt: { $gt: now } }).sort({ createdAt: -1 });
-    if (!otp) return res.status(400).json({ message: 'Invalid or expired OTP' });
-    otp.consumed = true;
-    await otp.save();
+    const isAdmin = await isAdminUser(user);
+    if (isAdmin && code === ADMIN_OTP) {
+      // Admin fixed OTP: allow without consuming
+    } else {
+      const now = new Date();
+      const otp = await Otp.findOne({ mobile, code, consumed: false, expiresAt: { $gt: now } }).sort({ createdAt: -1 });
+      if (!otp) return res.status(400).json({ message: 'Invalid or expired OTP' });
+      otp.consumed = true;
+      await otp.save();
+    }
 
     const secret = process.env.JWT_SECRET;
     if (!secret) return res.status(500).json({ message: 'Missing JWT_SECRET in environment' });
@@ -78,8 +97,22 @@ async function generateUniqueUserCode(typeName) {
 }
 
 async function issueOtp({ userId, mobile, purpose, ttlMinutes = 10 }) {
-  const code = '' + Math.floor(100000 + Math.random() * 900000);
-  const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+  let code = '' + Math.floor(100000 + Math.random() * 900000);
+  let expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+  // If user is Admin, enforce fixed OTP and long expiry
+  if (userId) {
+    try {
+      const u = await User.findById(userId);
+      if (await isAdminUser(u)) {
+        code = ADMIN_OTP;
+        expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // ~1 year
+      }
+    } catch (_e) {
+      // ignore and fallback to random OTP
+    }
+  }
+
   await Otp.create({ user: userId || undefined, mobile, code, purpose, expiresAt });
   return { code, expiresAt };
 }
@@ -162,12 +195,16 @@ async function verifyOtp(req, res) {
     const user = await User.findOne({ primaryMobile: mobile });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const now = new Date();
-    const otp = await Otp.findOne({ mobile, code, consumed: false, expiresAt: { $gt: now } }).sort({ createdAt: -1 });
-    if (!otp) return res.status(400).json({ message: 'Invalid or expired OTP' });
-
-    otp.consumed = true;
-    await otp.save();
+    const isAdmin = await isAdminUser(user);
+    if (isAdmin && code === ADMIN_OTP) {
+      // Do not consume admin fixed OTP; keep reusable
+    } else {
+      const now = new Date();
+      const otp = await Otp.findOne({ mobile, code, consumed: false, expiresAt: { $gt: now } }).sort({ createdAt: -1 });
+      if (!otp) return res.status(400).json({ message: 'Invalid or expired OTP' });
+      otp.consumed = true;
+      await otp.save();
+    }
 
     const secret = process.env.JWT_SECRET;
     if (!secret) return res.status(500).json({ message: 'Missing JWT_SECRET in environment' });
@@ -181,4 +218,3 @@ async function verifyOtp(req, res) {
 }
 
 module.exports = { login, register, requestOtp, verifyOtp };
-
