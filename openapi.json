@@ -259,7 +259,7 @@
     "/api/rewards/{id}": {
       "patch": { "summary": "Update reward (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RewardUpdate" } } } }, "responses": { "200": { "description": "Updated" } } },
       "delete": { "summary": "Delete reward (admin)", "security": [ { "BearerAuth": [] } ], "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ], "responses": { "200": { "description": "Deleted" } } }
-    }
+    },
 
     "/api/user-types": {
       "get": {
