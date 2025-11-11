@@ -14,6 +14,139 @@
     "/api/auth/verify-otp": { "post": { "summary": "Verify OTP", "description": "Verifies OTP and returns JWT. For Admin users, code 555444 is accepted and not consumed.", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VerifyOtp" }, "examples": { "Admin": { "value": { "mobile": "9999999999", "code": "555444" } } } } } }, "responses": { "200": { "description": "Login success", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginSuccessResponse" } } } }, "400": { "$ref": "#/components/responses/BadRequest" }, "404": { "$ref": "#/components/responses/NotFound" } } } },
     "/api/users/create-type": { "post": { "summary": "Create a user type", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserTypeCreate" } } } }, "responses": { "201": { "description": "Created" }, "500": { "$ref": "#/components/responses/ServerError" } } } },
     "/api/users/create-user": { "post": { "summary": "Create user", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateUserRequest" } } } }, "responses": { "201": { "description": "User created" }, "400": { "$ref": "#/components/responses/BadRequest" }, "500": { "$ref": "#/components/responses/ServerError" } } } },
+
+    "/api/users": {
+      "get": {
+        "summary": "List users (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [
+          { "name": "search", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1 }, "example": 1 },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100 }, "example": 20 }
+        ],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserListResponse" } } } },
+          "401": { "$ref": "#/components/responses/Forbidden" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+
+    "/api/users/{id}": {
+      "get": {
+        "summary": "Get user by ID (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": {
+          "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "summary": "Update user (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserRequest" } } } },
+        "responses": {
+          "200": { "description": "Updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUserResponse" } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "summary": "Delete user (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": {
+          "200": { "description": "Deleted" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+
+    "/api/users/{id}/assign-manager": {
+      "post": {
+        "summary": "Assign or clear manager (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "managerId": { "type": "string", "nullable": true } } } } } },
+        "responses": { "200": { "description": "OK" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/users/{id}/subordinates": {
+      "get": {
+        "summary": "List subordinates (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+
+    "/api/users/map/dealer-distributor": {
+      "post": {
+        "summary": "Map Dealer to Distributor (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "required": ["dealerId", "distributorId"], "properties": { "dealerId": { "type": "string" }, "distributorId": { "type": "string" } } } } }
+        },
+        "responses": { "200": { "description": "Mapped" }, "400": { "$ref": "#/components/responses/BadRequest" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/users/map/distributor-salesman": {
+      "post": {
+        "summary": "Map Salesman to Distributor (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "required": ["distributorId", "salesmanId"], "properties": { "distributorId": { "type": "string" }, "salesmanId": { "type": "string" } } } } }
+        },
+        "responses": { "200": { "description": "Mapped" }, "400": { "$ref": "#/components/responses/BadRequest" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/users/map/dealer-salesman": {
+      "post": {
+        "summary": "Map Salesman to Dealer (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "required": ["dealerId", "salesmanId"], "properties": { "dealerId": { "type": "string" }, "salesmanId": { "type": "string" } } } } }
+        },
+        "responses": { "200": { "description": "Mapped" }, "400": { "$ref": "#/components/responses/BadRequest" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+
+    "/api/user-types": {
+      "get": {
+        "summary": "List user types (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/UserType" } } } } } }
+      },
+      "post": {
+        "summary": "Create user type (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserTypeCreate" } } } },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+
+    "/api/user-types/{id}": {
+      "patch": {
+        "summary": "Update user type (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserTypeUpdate" } } } },
+        "responses": { "200": { "description": "Updated" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "delete": {
+        "summary": "Delete user type (admin)",
+        "security": [ { "BearerAuth": [] } ],
+        "parameters": [ { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } } ],
+        "responses": { "200": { "description": "Deleted" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
     "/api/openapi.json": { "get": { "summary": "Serve OpenAPI JSON", "responses": { "200": { "description": "Spec JSON" } } } }
     ,
     "/api/dev/otps": {
@@ -40,6 +173,33 @@
       "VerifyOtp": { "type": "object", "required": ["mobile", "code"], "properties": { "mobile": { "type": "string" }, "code": { "type": "string" } } },
       "UserTypeCreate": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "description": { "type": "string" } } },
       "CreateUserRequest": { "type": "object", "required": ["userName", "primaryMobile", "typeName"], "properties": { "userName": { "type": "string" }, "primaryMobile": { "type": "string" }, "typeName": { "type": "string" }, "email": { "type": "string" }, "address1": { "type": "string" }, "address2": { "type": "string" }, "cityName": { "type": "string" } } },
+      "UpdateUserRequest": { "type": "object", "properties": { "userName": { "type": "string" }, "email": { "type": "string" }, "primaryMobile": { "type": "string" }, "typeName": { "type": "string" }, "address1": { "type": "string" }, "address2": { "type": "string" }, "cityName": { "type": "string" }, "isActive": { "type": "boolean" } } },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userName": { "type": "string" },
+          "email": { "type": "string" },
+          "primaryMobile": { "type": "string" },
+          "uniqueCode": { "type": "string" },
+          "isActive": { "type": "boolean" },
+          "userType": { "$ref": "#/components/schemas/UserType" },
+          "address": { "type": "object", "nullable": true },
+          "manager": { "type": "string", "nullable": true }
+        }
+      },
+      "UserListResponse": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/User" } },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" }
+        }
+      },
+      "UpdateUserResponse": { "type": "object", "properties": { "message": { "type": "string" }, "user": { "$ref": "#/components/schemas/User" } } },
+      "UserType": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "description": { "type": "string" } } },
+      "UserTypeUpdate": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" } } },
       "OtpSentResponse": { "type": "object", "properties": { "message": { "type": "string", "example": "OTP sent" }, "mobile": { "type": "string", "example": "xxxxxx9999" }, "debugOtp": { "type": "object", "nullable": true, "properties": { "code": { "type": "string", "example": "555444" }, "expiresAt": { "type": "string", "format": "date-time" } }, "description": "Included only in non-production." } } },
       "LoginSuccessResponse": { "type": "object", "properties": { "message": { "type": "string", "example": "Login successful" }, "token": { "type": "string" }, "user": { "type": "object", "properties": { "id": { "type": "string" }, "userName": { "type": "string", "example": "Admin" }, "email": { "type": "string", "example": "admin@rewarity.com" }, "uniqueCode": { "type": "string", "example": "ADMIN-001" } } } } }
     },

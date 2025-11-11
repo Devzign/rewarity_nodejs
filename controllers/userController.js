@@ -196,4 +196,79 @@ const listSubordinates = async (req, res) => {
   }
 };
 
-module.exports = { createUserType, createUser, seedAdmin, listUsers, getUserById, updateUser, deleteUser, assignManager, listSubordinates };
+// Type guard helper
+async function ensureType(user, expected) {
+  if (!user || !user.userType) return false;
+  const t = await UserType.findById(user.userType);
+  return !!(t && new RegExp(`^${expected}$`, 'i').test(t.name));
+}
+
+// Map Dealer -> Distributor (dealer reports to distributor)
+const mapDealerDistributor = async (req, res) => {
+  try {
+    const { dealerId, distributorId } = req.body || {};
+    if (!dealerId || !distributorId) return res.status(400).json({ message: 'dealerId and distributorId are required' });
+    const [dealer, distributor] = await Promise.all([
+      User.findById(dealerId),
+      User.findById(distributorId),
+    ]);
+    if (!dealer) return res.status(404).json({ message: 'Dealer not found' });
+    if (!distributor) return res.status(404).json({ message: 'Distributor not found' });
+    if (!(await ensureType(dealer, 'Dealer'))) return res.status(400).json({ message: 'dealerId is not a Dealer' });
+    if (!(await ensureType(distributor, 'Distributor'))) return res.status(400).json({ message: 'distributorId is not a Distributor' });
+    dealer.manager = distributor._id;
+    await dealer.save();
+    const populated = await User.findById(dealer._id).populate('userType address manager');
+    res.json({ message: 'Dealer mapped to Distributor', user: populated });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to map dealer/distributor', error: err.message });
+  }
+};
+
+// Map Salesman -> Distributor
+const mapDistributorSalesman = async (req, res) => {
+  try {
+    const { distributorId, salesmanId } = req.body || {};
+    if (!distributorId || !salesmanId) return res.status(400).json({ message: 'distributorId and salesmanId are required' });
+    const [distributor, salesman] = await Promise.all([
+      User.findById(distributorId),
+      User.findById(salesmanId),
+    ]);
+    if (!distributor) return res.status(404).json({ message: 'Distributor not found' });
+    if (!salesman) return res.status(404).json({ message: 'Salesman not found' });
+    if (!(await ensureType(distributor, 'Distributor'))) return res.status(400).json({ message: 'distributorId is not a Distributor' });
+    const isSales = (await ensureType(salesman, 'Salesperson')) || (await ensureType(salesman, 'Salesman')) || (await ensureType(salesman, 'Sales'));
+    if (!isSales) return res.status(400).json({ message: 'salesmanId is not a Salesperson' });
+    salesman.manager = distributor._id;
+    await salesman.save();
+    const populated = await User.findById(salesman._id).populate('userType address manager');
+    res.json({ message: 'Salesman mapped to Distributor', user: populated });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to map distributor/salesman', error: err.message });
+  }
+};
+
+// Map Salesman -> Dealer
+const mapDealerSalesman = async (req, res) => {
+  try {
+    const { dealerId, salesmanId } = req.body || {};
+    if (!dealerId || !salesmanId) return res.status(400).json({ message: 'dealerId and salesmanId are required' });
+    const [dealer, salesman] = await Promise.all([
+      User.findById(dealerId),
+      User.findById(salesmanId),
+    ]);
+    if (!dealer) return res.status(404).json({ message: 'Dealer not found' });
+    if (!salesman) return res.status(404).json({ message: 'Salesman not found' });
+    if (!(await ensureType(dealer, 'Dealer'))) return res.status(400).json({ message: 'dealerId is not a Dealer' });
+    const isSales = (await ensureType(salesman, 'Salesperson')) || (await ensureType(salesman, 'Salesman')) || (await ensureType(salesman, 'Sales'));
+    if (!isSales) return res.status(400).json({ message: 'salesmanId is not a Salesperson' });
+    salesman.manager = dealer._id;
+    await salesman.save();
+    const populated = await User.findById(salesman._id).populate('userType address manager');
+    res.json({ message: 'Salesman mapped to Dealer', user: populated });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to map dealer/salesman', error: err.message });
+  }
+};
+
+module.exports = { createUserType, createUser, seedAdmin, listUsers, getUserById, updateUser, deleteUser, assignManager, listSubordinates, mapDealerDistributor, mapDistributorSalesman, mapDealerSalesman };

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUserType, createUser, listUsers, getUserById, updateUser, deleteUser, assignManager, listSubordinates } = require('../controllers/userController');
+const { createUserType, createUser, listUsers, getUserById, updateUser, deleteUser, assignManager, listSubordinates, mapDealerDistributor, mapDistributorSalesman, mapDealerSalesman } = require('../controllers/userController');
 const { auth, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -16,5 +16,10 @@ router.delete('/:id', auth, requireAdmin, deleteUser);
 // Map Dealer/Salesperson: assign manager and list subordinates
 router.post('/:id/assign-manager', auth, requireAdmin, assignManager);
 router.get('/:id/subordinates', auth, requireAdmin, listSubordinates);
+
+// Explicit mapping endpoints
+router.post('/map/dealer-distributor', auth, requireAdmin, mapDealerDistributor);
+router.post('/map/distributor-salesman', auth, requireAdmin, mapDistributorSalesman);
+router.post('/map/dealer-salesman', auth, requireAdmin, mapDealerSalesman);
 
 module.exports = router;
